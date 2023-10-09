@@ -1,0 +1,87 @@
+---
+title: "Assignment-3"
+author: "VasanthKumar B"
+date: "2023-09-08"
+output: html_document
+---
+
+1. In this problem, you will develop a model to predict whether a given car gets high or low gas mileage based on the Auto data set.
+```{r}
+library(ISLR)
+summary(Auto)
+
+```
+
+(a) Create a binary variable, mpg01, that contains a 1 if mpg contains a value above its median, and a 0 if mpg contains a value below its median. You can compute the median using the median() function. Note you may find it helpful to use the data.frame() function to create a single data set containing both mpg01 and the other Auto variables.
+```{r}
+attach(Auto)
+```
+
+
+```{r}
+mpg01 <- ifelse( mpg > median(mpg), yes = 1, no = 0)
+```
+
+
+```{r}
+Auto_1 <- data.frame(Auto, mpg01)
+
+View(Auto_1)
+
+```
+
+ (b) Explore the data graphically in order to investigate the association between mpg01 and the other features. Which of the other features seem most likely to be useful in predicting mpg01? Scatterplots and boxplots may be useful tools to answer this question. Describe your findings. 
+```{r}
+plot(Auto_1$mpg01,Auto_1$displacement)
+plot(Auto_1$mpg01,Auto_1$weight)
+plot(Auto_1$mpg01,Auto_1$horsepower)
+plot(Auto_1$mpg01,Auto_1$acceleration)
+boxplot(cylinders~mpg01)
+boxplot(displacement~mpg01)
+boxplot(horsepower~mpg01)
+```
+ 
+(c)	 Split the data into a training set and a test set.
+```{r}
+train<-sample(nrow(Auto_1), size = nrow(Auto_1)*0.70)
+
+
+dim(Auto_1)
+
+
+```
+
+(d)	Perform LDA on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained? 
+```{r}
+library(MASS)
+lda_fit<-lda(mpg01~displacement+weight+acceleration+horsepower+cylinders,data=Auto_1,subset=train)
+
+probs<-predict(lda_fit,Auto_1[-train])
+table(probs$class, Auto_1[-train, "mpg01"])
+
+
+
+
+```
+
+(e)	Perform QDA on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained? 
+```{r}
+qda_fit<-qda(mpg01~displacement+weight+acceleration+horsepower+cylinders, data=Auto_1,subset = train)
+probs<-predict(qda_fit,Auto_1[-train,])
+table(probs$class, Auto_1[-train, "mpg01"])
+
+```
+
+(f)	Perform logistic regression on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained?
+```{r}
+fit<-glm(mpg01~displacement+weight+acceleration+horsepower+cylinders, data=Auto_1,family = binomial)
+summary(fit)
+probs<-predict(fit,Auto_1[-train,])
+glm_pred = rep("No", length(Auto_1[-train, ])[1])
+glm_pred[probs > 0.5] = "Yes"
+table(glm_pred, Auto_1[-train, "mpg01"])
+
+
+```
+
+
